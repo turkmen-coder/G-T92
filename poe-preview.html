@@ -1,0 +1,960 @@
+<!DOCTYPE html><html lang="tr"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Mühendisliği Asistanı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 60px 0;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 15px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 50px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .model-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .model-card.selected {
+            border: 2px solid var(--primary-color);
+            transform: translateY(-5px);
+        }
+        
+        .model-card:hover {
+            border: 2px solid var(--primary-color);
+        }
+        
+        .model-tag {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-right: 5px;
+            background-color: #e9ecef;
+        }
+        
+        .tag-best { background-color: #d4edda; }
+        .tag-fast { background-color: #d1ecf1; }
+        .tag-free { background-color: #fff3cd; }
+        
+        .prompt-template {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+        }
+        
+        .footer {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+        
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .output-container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 200px;
+        }
+        
+        .token-counter {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-lightning-charge-fill"></i> Prompt Mühendisliği Asistanı</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Modeller</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Şablonlar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Rehber</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Prompt Mühendisliği Asistanı</h1>
+            <p class="lead">Çoklu AI Modeli için Kapsamlı Prompt Oluşturma ve Optimizasyon Aracı</p>
+            <button class="btn btn-light btn-lg mt-3">Hemen Başla <i class="bi bi-arrow-right"></i></button>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <!-- Features Section -->
+        <section class="mb-5">
+            <h2 class="text-center mb-4">Özellikler</h2>
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-cpu feature-icon"></i>
+                            <h5 class="card-title">Model Optimizasyonu</h5>
+                            <p class="card-text">Farklı modeller için özel prompt stratejileri</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-file-earmark-code feature-icon"></i>
+                            <h5 class="card-title">Şablon Kütüphanesi</h5>
+                            <p class="card-text">Hazır prompt şablonları ile hızlı başlangıç</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-shield-check feature-icon"></i>
+                            <h5 class="card-title">Güvenlik</h5>
+                            <p class="card-text">Prompt injection koruma ve güvenlik kontrolleri</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="bi bi-graph-up feature-icon"></i>
+                            <h5 class="card-title">Performans Analizi</h5>
+                            <p class="card-text">Prompt performansını ölçün ve iyileştirin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prompt Builder Section -->
+        <section class="mb-5">
+            <h2 class="mb-4">Prompt Oluşturucu</h2>
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="promptTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button">Temel Prompt</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="template-tab" data-bs-toggle="tab" data-bs-target="#template" type="button">Şablon Kullan</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button">Gelişmiş</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="tab-content" id="promptTabsContent">
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                        <form>
+                            <div class="mb-3">
+                                <label for="modelSelect" class="form-label">Hedef Model</label>
+                                <select class="form-select" id="modelSelect">
+                                    <option value="">Model Seçin</option>
+                                    <option value="gpt-4.1">GPT-4.1 (OpenAI)</option>
+                                    <option value="claude-4-opus">Claude 4 Opus (Anthropic)</option>
+                                    <option value="claude-4-sonnet">Claude 4 Sonnet (Anthropic)</option>
+                                    <option value="gemini-2.5-pro">Gemini 2.5 Pro (Google)</option>
+                                    <option value="deepseek-r1">DeepSeek R1 (DeepSeek)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="roleInput" class="form-label">Rol Tanımı</label>
+                                <input type="text" class="form-control" id="roleInput" placeholder="Örn: Senior Python Geliştirici">
+                            </div>
+                            <div class="mb-3">
+                                <label for="taskInput" class="form-label">Görev Tanımı</label>
+                                <textarea class="form-control" id="taskInput" rows="3" placeholder="Ne yapılacağını açıklayın"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contextInput" class="form-label">Bağlam Bilgisi</label>
+                                <textarea class="form-control" id="contextInput" rows="3" placeholder="Gerekli arka plan bilgisi"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="outputFormat" class="form-label">Çıktı Formatı</label>
+                                <select class="form-select" id="outputFormat">
+                                    <option value="text">Düz Metin</option>
+                                    <option value="json">JSON</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="xml">XML</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="constraintsInput" class="form-label">Kısıtlamalar</label>
+                                <textarea class="form-control" id="constraintsInput" rows="2" placeholder="Yapmaması gerekenler"></textarea>
+                            </div>
+                            <div class="d-grid">
+                                <button type="button" class="btn btn-primary" id="generatePromptBtn">Prompt Oluştur</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="template" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="templateSelect" class="form-label">Şablon Seçin</label>
+                            <select class="form-select" id="templateSelect">
+                                <option value="">Şablon Seçin</option>
+                                <option value="blog">Blog Yazısı Oluşturma</option>
+                                <option value="code">Kod Üretimi</option>
+                                <option value="api-doc">API Dokümantasyonu</option>
+                                <option value="education">Eğitim İçeriği</option>
+                                <option value="qa">Soru-Cevap Sistemi</option>
+                            </select>
+                        </div>
+                        <div id="templateForm" class="d-none">
+                            <!-- Template form will be dynamically loaded here -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="advanced" role="tabpanel">
+                        <div class="mb-3">
+                            <label for="chainOfThought" class="form-label">
+                                <input class="form-check-input me-2" type="checkbox" id="chainOfThought">
+                                Zincirleme Düşünme (Chain-of-Thought)
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="treeOfThoughts" class="form-label">
+                                <input class="form-check-input me-2" type="checkbox" id="treeOfThoughts">
+                                Düşünce Ağacı (Tree of Thoughts)
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="constitutionalAI" class="form-label">
+                                <input class="form-check-input me-2" type="checkbox" id="constitutionalAI">
+                                Anayasal AI (Constitutional AI)
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ragEnabled" class="form-label">
+                                <input class="form-check-input me-2" type="checkbox" id="ragEnabled">
+                                RAG (Retrieval-Augmented Generation)
+                            </label>
+                        </div>
+                        <div id="ragOptions" class="d-none">
+                            <div class="mb-3">
+                                <label for="documentUpload" class="form-label">Belge Yükle</label>
+                                <input class="form-control" type="file" id="documentUpload">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ragContext" class="form-label">RAG Bağlamı</label>
+                                <textarea class="form-control" id="ragContext" rows="3" placeholder="Belgelerden alınacak bağlam"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h4>Oluşturulan Prompt</h4>
+                <div class="output-container" id="generatedPrompt">
+                    Prompt oluşturmak için yukarıdaki formu doldurun ve "Prompt Oluştur" butonuna tıklayın.
+                </div>
+                <div class="token-counter" id="tokenCounter">0 token</div>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-outline-secondary me-2" id="copyPromptBtn">
+                        <i class="bi bi-clipboard"></i> Kopyala
+                    </button>
+                    <button class="btn btn-primary" id="testPromptBtn">
+                        <i class="bi bi-play-circle"></i> Test Et
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Comparison Section -->
+        <section class="mb-5">
+            <h2 class="mb-4">Model Karşılaştırma</h2>
+            <div class="row g-4" id="modelComparison">
+                <!-- Model cards will be dynamically generated here -->
+            </div>
+        </section>
+
+        <!-- Prompt Templates Section -->
+        <section class="mb-5">
+            <h2 class="mb-4">Prompt Şablonları</h2>
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="prompt-template">
+                        <h5>Blog Yazısı Oluşturma</h5>
+                        <pre><code># Rol: SEO Uzmanı Content Writer
+
+## Görev
+"{konu}" hakkında 1500+ kelimelik blog yazısı yaz
+
+## Hedef Kitle
+- {Demografik bilgi}
+- {İlgi alanları}
+
+## SEO Gereksinimleri
+- Ana keyword: "{keyword}"
+- LSI keywords: {liste}
+- Meta description: 150-160 karakter
+
+## Yapı
+1. Çekici başlık (H1)
+2. Giriş (150 kelime)
+3. 3-4 ana bölüm (H2)
+4. Alt başlıklar (H3)
+5. Sonuç ve CTA
+
+## Ton
+- {Profesyonel/Samimi/Teknik}
+- {Hedef kitle uygun dil}</code></pre>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="prompt-template">
+                        <h5>Kod Üretimi</h5>
+                        <pre><code># Rol: Senior {Programlama Dili} Developer
+
+## Görev
+{Fonksiyon/Sınıf/Modül} implementasyonu
+
+## Fonksiyon Gereksinimleri
+- Input: {parametreler}
+- Output: {dönüş tipi}
+- Edge cases: {sınır durumlar}
+
+## Kod Standardı
+- {Naming conventions}
+- {Documentation style}
+- {Performance constraints}
+
+## Test Cases
+En az 3 test senaryosu dahil et</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Prompt Mühendisliği Asistanı</h5>
+                    <p>Çoklu AI Modeli için Kapsamlı Prompt Oluşturma ve Optimizasyon Aracı</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Hızlı Linkler</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Ana Sayfa</a></li>
+                        <li><a href="#" class="text-white">Modeller</a></li>
+                        <li><a href="#" class="text-white">Şablonlar</a></li>
+                        <li><a href="#" class="text-white">Rehber</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>İletişim</h5>
+                    <p>Email: info@promptmuhendisligi.com</p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-white"><i class="bi bi-github"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 bg-white">
+            <div class="text-center">
+                <p>© 2025 Prompt Mühendisliği Asistanı. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Model data
+            const models = [
+                {
+                    id: 'gpt-4.1',
+                    name: 'GPT-4.1',
+                    provider: 'OpenAI',
+                    description: '1 milyon token bağlamıyla ileri seviye talimat takibi',
+                    strengths: ['Uzun metinler', 'Kodlama', 'Bilgi tabanlı agentlar'],
+                    tokenLimit: '1.05M',
+                    tags: ['best', 'paid']
+                },
+                {
+                    id: 'claude-4-opus',
+                    name: 'Claude 4 Opus',
+                    provider: 'Anthropic',
+                    description: 'Dünya çapında en iyi kodlama performansı',
+                    strengths: ['Kodlama', 'Çok adımlı görevler', 'Agentik işlemler'],
+                    tokenLimit: '200K',
+                    tags: ['best', 'paid']
+                },
+                {
+                    id: 'claude-4-sonnet',
+                    name: 'Claude 4 Sonnet',
+                    provider: 'Anthropic',
+                    description: 'Hız-performans dengesi',
+                    strengths: ['Günlük yazılım görevleri', 'Kurumsal uygulamalar'],
+                    tokenLimit: '200K',
+                    tags: ['fast', 'paid']
+                },
+                {
+                    id: 'gemini-2.5-pro',
+                    name: 'Gemini 2.5 Pro',
+                    provider: 'Google',
+                    description: 'Derin akıl yürütme ve bilimsel görevlerde üst düzey doğruluk',
+                    strengths: ['Bilimsel araştırma', 'Matematik', 'Kodlama'],
+                    tokenLimit: '1.05M',
+                    tags: ['best', 'free']
+                },
+                {
+                    id: 'deepseek-r1',
+                    name: 'DeepSeek R1',
+                    provider: 'DeepSeek',
+                    description: 'Açık kaynak reasoning modeli',
+                    strengths: ['Genel amaçlı sohbet', 'Kod üretimi', 'Belge analizi'],
+                    tokenLimit: '164K',
+                    tags: ['free']
+                },
+                {
+                    id: 'llama-4-scout',
+                    name: 'Llama 4 Scout',
+                    provider: 'Meta',
+                    description: '10M token dev bağlam penceresi',
+                    strengths: ['Çok büyük dökümanlar', 'Görsel akıl yürütme'],
+                    tokenLimit: '10M',
+                    tags: ['free']
+                }
+            ];
+
+            // Generate model cards
+            const modelComparison = document.getElementById('modelComparison');
+            models.forEach(model => {
+                const tagsHtml = model.tags.map(tag => {
+                    let tagClass = '';
+                    let tagText = '';
+                    
+                    switch(tag) {
+                        case 'best':
+                            tagClass = 'tag-best';
+                            tagText = 'En İyi';
+                            break;
+                        case 'fast':
+                            tagClass = 'tag-fast';
+                            tagText = 'Hızlı';
+                            break;
+                        case 'free':
+                            tagClass = 'tag-free';
+                            tagText = 'Ücretsiz';
+                            break;
+                        case 'paid':
+                            tagClass = 'tag-paid';
+                            tagText = 'Ücretli';
+                            break;
+                    }
+                    
+                    return `<span class="model-tag ${tagClass}">${tagText}</span>`;
+                }).join('');
+                
+                const strengthsHtml = model.strengths.map(strength => 
+                    `<li><i class="bi bi-check-circle-fill text-success"></i> ${strength}</li>`
+                ).join('');
+                
+                const cardHtml = `
+                    <div class="col-md-4">
+                        <div class="card model-card h-100" data-model-id="${model.id}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title">${model.name}</h5>
+                                    ${tagsHtml}
+                                </div>
+                                <h6 class="card-subtitle mb-2 text-muted">${model.provider}</h6>
+                                <p class="card-text">${model.description}</p>
+                                <ul class="list-unstyled">
+                                    ${strengthsHtml}
+                                </ul>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-secondary">Token: ${model.tokenLimit}</span>
+                                    <button class="btn btn-sm btn-outline-primary select-model-btn">Seç</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                modelComparison.innerHTML += cardHtml;
+            });
+
+            // Model selection
+            const modelCards = document.querySelectorAll('.model-card');
+            const modelSelect = document.getElementById('modelSelect');
+            
+            modelCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    modelCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Update the select element
+                    const modelId = this.getAttribute('data-model-id');
+                    modelSelect.value = modelId;
+                    
+                    // Switch to the basic tab
+                    const basicTab = new bootstrap.Tab(document.getElementById('basic-tab'));
+                    basicTab.show();
+                });
+            });
+
+            // Select model buttons
+            const selectModelBtns = document.querySelectorAll('.select-model-btn');
+            selectModelBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('.model-card');
+                    card.click();
+                });
+            });
+
+            // Template selection
+            const templateSelect = document.getElementById('templateSelect');
+            const templateForm = document.getElementById('templateForm');
+            
+            templateSelect.addEventListener('change', function() {
+                if (this.value) {
+                    templateForm.classList.remove('d-none');
+                    
+                    // Load specific template form based on selection
+                    let formHtml = '';
+                    
+                    switch(this.value) {
+                        case 'blog':
+                            formHtml = `
+                                <div class="mb-3">
+                                    <label for="blogTopic" class="form-label">Konu</label>
+                                    <input type="text" class="form-control" id="blogTopic" placeholder="Blog konusu">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="blogAudience" class="form-label">Hedef Kitle</label>
+                                    <input type="text" class="form-control" id="blogAudience" placeholder="Hedef kitle">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="blogKeyword" class="form-label">Anahtar Kelime</label>
+                                    <input type="text" class="form-control" id="blogKeyword" placeholder="Anahtar kelime">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="blogTone" class="form-label">Ton</label>
+                                    <select class="form-select" id="blogTone">
+                                        <option value="professional">Profesyonel</option>
+                                        <option value="casual">Samimi</option>
+                                        <option value="technical">Teknik</option>
+                                    </select>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary" id="generateFromTemplateBtn">Prompt Oluştur</button>
+                                </div>
+                            `;
+                            break;
+                        case 'code':
+                            formHtml = `
+                                <div class="mb-3">
+                                    <label for="codeLanguage" class="form-label">Programlama Dili</label>
+                                    <input type="text" class="form-control" id="codeLanguage" placeholder="Python, JavaScript, etc.">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="codeTask" class="form-label">Görev</label>
+                                    <textarea class="form-control" id="codeTask" rows="3" placeholder="Ne yapılacağı"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="codeInput" class="form-label">Girdi Parametreleri</label>
+                                    <input type="text" class="form-control" id="codeInput" placeholder="param1, param2">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="codeOutput" class="form-label">Çıktı Tipi</label>
+                                    <input type="text" class="form-control" id="codeOutput" placeholder="Dönüş tipi">
+                                </div>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary" id="generateFromTemplateBtn">Prompt Oluştur</button>
+                                </div>
+                            `;
+                            break;
+                        case 'api-doc':
+                            formHtml = `
+                                <div class="mb-3">
+                                    <label for="apiEndpoint" class="form-label">API Endpoint</label>
+                                    <input type="text" class="form-control" id="apiEndpoint" placeholder="/api/resource">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="apiMethod" class="form-label">HTTP Metodu</label>
+                                    <select class="form-select" id="apiMethod">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="apiDescription" class="form-label">Açıklama</label>
+                                    <textarea class="form-control" id="apiDescription" rows="3" placeholder="Endpoint açıklaması"></textarea>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary" id="generateFromTemplateBtn">Prompt Oluştur</button>
+                                </div>
+                            `;
+                            break;
+                        case 'education':
+                            formHtml = `
+                                <div class="mb-3">
+                                    <label for="eduTopic" class="form-label">Konu</label>
+                                    <input type="text" class="form-control" id="eduTopic" placeholder="Eğitim konusu">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="eduLevel" class="form-label">Seviye</label>
+                                    <select class="form-select" id="eduLevel">
+                                        <option value="beginner">Başlangıç</option>
+                                        <option value="intermediate">Orta</option>
+                                        <option value="advanced">İleri</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="eduDuration" class="form-label">Süre</label>
+                                    <input type="text" class="form-control" id="eduDuration" placeholder="60 dakika">
+                                </div>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary" id="generateFromTemplateBtn">Prompt Oluştur</button>
+                                </div>
+                            `;
+                            break;
+                        case 'qa':
+                            formHtml = `
+                                <div class="mb-3">
+                                    <label for="qaDomain" class="form-label">Alan</label>
+                                    <input type="text" class="form-control" id="qaDomain" placeholder="Uzmanlık alanı">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="qaQuestion" class="form-label">Soru</label>
+                                    <textarea class="form-control" id="qaQuestion" rows="3" placeholder="Soruyu girin"></textarea>
+                                </div>
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-primary" id="generateFromTemplateBtn">Prompt Oluştur</button>
+                                </div>
+                            `;
+                            break;
+                    }
+                    
+                    templateForm.innerHTML = formHtml;
+                    
+                    // Add event listener to the generate button
+                    const generateBtn = document.getElementById('generateFromTemplateBtn');
+                    if (generateBtn) {
+                        generateBtn.addEventListener('click', generateFromTemplate);
+                    }
+                } else {
+                    templateForm.classList.add('d-none');
+                }
+            });
+
+            // RAG checkbox
+            const ragEnabled = document.getElementById('ragEnabled');
+            const ragOptions = document.getElementById('ragOptions');
+            
+            ragEnabled.addEventListener('change', function() {
+                if (this.checked) {
+                    ragOptions.classList.remove('d-none');
+                } else {
+                    ragOptions.classList.add('d-none');
+                }
+            });
+
+            // Generate prompt button
+            const generatePromptBtn = document.getElementById('generatePromptBtn');
+            generatePromptBtn.addEventListener('click', generatePrompt);
+
+            // Copy prompt button
+            const copyPromptBtn = document.getElementById('copyPromptBtn');
+            copyPromptBtn.addEventListener('click', function() {
+                const promptText = document.getElementById('generatedPrompt').textContent;
+                navigator.clipboard.writeText(promptText).then(() => {
+                    this.innerHTML = '<i class="bi bi-check"></i> Kopyalandı!';
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="bi bi-clipboard"></i> Kopyala';
+                    }, 2000);
+                });
+            });
+
+            // Test prompt button
+            const testPromptBtn = document.getElementById('testPromptBtn');
+            testPromptBtn.addEventListener('click', function() {
+                alert('Test özelliği yakında eklenecek!');
+            });
+
+            // Generate prompt function
+            function generatePrompt() {
+                const model = document.getElementById('modelSelect').value;
+                const role = document.getElementById('roleInput').value;
+                const task = document.getElementById('taskInput').value;
+                const context = document.getElementById('contextInput').value;
+                const outputFormat = document.getElementById('outputFormat').value;
+                const constraints = document.getElementById('constraintsInput').value;
+                
+                let prompt = '';
+                
+                if (role) {
+                    prompt += `# Rol: ${role}\n\n`;
+                }
+                
+                if (task) {
+                    prompt += `## Görev\n${task}\n\n`;
+                }
+                
+                if (context) {
+                    prompt += `## Bağlam\n${context}\n\n`;
+                }
+                
+                if (outputFormat && outputFormat !== 'text') {
+                    prompt += `## Çıktı Formatı\n${outputFormat.toUpperCase()}\n\n`;
+                }
+                
+                if (constraints) {
+                    prompt += `## Kısıtlamalar\n${constraints}\n\n`;
+                }
+                
+                // Add model-specific optimizations
+                if (model) {
+                    prompt += `## Model Optimizasyonu\n`;
+                    
+                    switch(model) {
+                        case 'gpt-4.1':
+                            prompt += `- 1M token bağlam desteği\n`;
+                            prompt += `- Function calling desteği\n`;
+                            break;
+                        case 'claude-4-opus':
+                        case 'claude-4-sonnet':
+                            prompt += `- XML tag desteği\n`;
+                            prompt += `- 200K token bağlam\n`;
+                            break;
+                        case 'gemini-2.5-pro':
+                            prompt += `- max_tokens_for_reasoning parametresi ile akıl yürütme derinliği ayarlanabilir\n`;
+                            break;
+                        case 'deepseek-r1':
+                            prompt += `- Zincirleme akıl yürütme çıktıları şeffaftır\n`;
+                            break;
+                    }
+                    
+                    prompt += '\n';
+                }
+                
+                // Update the generated prompt display
+                document.getElementById('generatedPrompt').textContent = prompt || 'Prompt oluşturmak için formu doldurun.';
+                
+                // Update token counter
+                updateTokenCounter(prompt);
+            }
+
+            // Generate from template function
+            function generateFromTemplate() {
+                const templateType = document.getElementById('templateSelect').value;
+                let prompt = '';
+                
+                switch(templateType) {
+                    case 'blog':
+                        const blogTopic = document.getElementById('blogTopic').value;
+                        const blogAudience = document.getElementById('blogAudience').value;
+                        const blogKeyword = document.getElementById('blogKeyword').value;
+                        const blogTone = document.getElementById('blogTone').value;
+                        
+                        prompt = `# Rol: SEO Uzmanı Content Writer\n\n`;
+                        prompt += `## Görev\n"${blogTopic}" hakkında 1500+ kelimelik blog yazısı yaz\n\n`;
+                        prompt += `## Hedef Kitle\n- ${blogAudience}\n\n`;
+                        prompt += `## SEO Gereksinimleri\n- Ana keyword: "${blogKeyword}"\n`;
+                        prompt += `- Meta description: 150-160 karakter\n\n`;
+                        prompt += `## Yapı\n1. Çekici başlık (H1)\n2. Giriş (150 kelime)\n`;
+                        prompt += `3. 3-4 ana bölüm (H2)\n4. Alt başlıklar (H3)\n5. Sonuç ve CTA\n\n`;
+                        prompt += `## Ton\n- ${blogTone === 'professional' ? 'Profesyonel' : blogTone === 'casual' ? 'Samimi' : 'Teknik'}\n`;
+                        break;
+                        
+                    case 'code':
+                        const codeLanguage = document.getElementById('codeLanguage').value;
+                        const codeTask = document.getElementById('codeTask').value;
+                        const codeInput = document.getElementById('codeInput').value;
+                        const codeOutput = document.getElementById('codeOutput').value;
+                        
+                        prompt = `# Rol: Senior ${codeLanguage} Developer\n\n`;
+                        prompt += `## Görev\n${codeTask}\n\n`;
+                        prompt += `## Fonksiyon Gereksinimleri\n- Input: ${codeInput}\n`;
+                        prompt += `- Output: ${codeOutput}\n\n`;
+                        prompt += `## Kod Standardı\n- Naming conventions\n`;
+                        prompt += `- Documentation style\n- Performance constraints\n\n`;
+                        prompt += `## Test Cases\nEn az 3 test senaryosu dahil et\n`;
+                        break;
+                        
+                    case 'api-doc':
+                        const apiEndpoint = document.getElementById('apiEndpoint').value;
+                        const apiMethod = document.getElementById('apiMethod').value;
+                        const apiDescription = document.getElementById('apiDescription').value;
+                        
+                        prompt = `# Rol: Technical Writer\n\n`;
+                        prompt += `## Görev\n${apiEndpoint} için kapsamlı dokümantasyon\n\n`;
+                        prompt += `## API Bilgisi\n- Method: ${apiMethod}\n`;
+                        prompt += `- URL: ${apiEndpoint}\n- Auth: {authentication method}\n\n`;
+                        prompt += `## Dokümantasyon Gereksinimleri\n1. Endpoint açıklaması\n`;
+                        prompt += `2. Request parameters (path, query, body)\n`;
+                        prompt += `3. Response examples (success/error)\n`;
+                        prompt += `4. Rate limiting bilgisi\n`;
+                        prompt += `5. Code samples (curl, Python, JavaScript)\n\n`;
+                        prompt += `## Açıklama\n${apiDescription}\n`;
+                        break;
+                        
+                    case 'education':
+                        const eduTopic = document.getElementById('eduTopic').value;
+                        const eduLevel = document.getElementById('eduLevel').value;
+                        const eduDuration = document.getElementById('eduDuration').value;
+                        
+                        prompt = `# Rol: Eğitim Uzmanı\n\n`;
+                        prompt += `## Görev\n${eduTopic} için ders planı oluştur\n\n`;
+                        prompt += `## Sınıf Bilgisi\n- Seviye: ${eduLevel === 'beginner' ? 'Başlangıç' : eduLevel === 'intermediate' ? 'Orta' : 'İleri'}\n`;
+                        prompt += `- Süre: ${eduDuration}\n\n`;
+                        prompt += `## Ders Planı Gereksinimleri\n1. Öğrenme hedefleri (3-5 madde)\n`;
+                        prompt += `2. İçerik yapısı (modüller)\n3. Aktiviteler ve alıştırmalar\n`;
+                        prompt += `4. Değerlendirme kriterleri\n5. Ek kaynaklar\n`;
+                        break;
+                        
+                    case 'qa':
+                        const qaDomain = document.getElementById('qaDomain').value;
+                        const qaQuestion = document.getElementById('qaQuestion').value;
+                        
+                        prompt = `# Rol: Uzman Danışman\n\n`;
+                        prompt += `## Görev\n${qaDomain} alanında detaylı soru cevaplama\n\n`;
+                        prompt += `## Soru\n${qaQuestion}\n\n`;
+                        prompt += `## Soru Gereksinimleri\n- Tek bir soruya odaklan\n`;
+                        prompt += `- Kaynak referansları ekle\n- Örneklerle destekle\n`;
+                        prompt += `- Alternatif yaklaşımlar sun\n\n`;
+                        prompt += `## Format\n1. Kısa cevap (1-2 cümle)\n2. Detaylı açıklama\n`;
+                        prompt += `3. Pratik örnekler\n4. İlgili kaynaklar\n`;
+                        break;
+                }
+                
+                // Update the generated prompt display
+                document.getElementById('generatedPrompt').textContent = prompt;
+                
+                // Update token counter
+                updateTokenCounter(prompt);
+                
+                // Switch to basic tab to show the generated prompt
+                const basicTab = new bootstrap.Tab(document.getElementById('basic-tab'));
+                basicTab.show();
+            }
+
+            // Update token counter function
+            function updateTokenCounter(text) {
+                // Simple token estimation (rough approximation)
+                const tokenCount = Math.ceil(text.length / 4); // Rough estimate: 1 token ≈ 4 characters
+                document.getElementById('tokenCounter').textContent = `${tokenCount} token`;
+            }
+        });
+    </script>
+
+
+</body></html>

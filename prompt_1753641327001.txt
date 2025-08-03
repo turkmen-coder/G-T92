@@ -1,0 +1,28 @@
+# GPT-4o için Optimize Edilmiş Prompt
+
+Bu problemi adım adım çözün:
+
+1. Problemi tanımlayın
+2. Alt bileşenlere ayırın
+3. Her adımı mantıksal olarak analiz edin
+4. Sonuçları sentezleyin
+5. Güven seviyenizi belirtin
+
+Problem: verdiğim belgeleri birleştirerek anlamlı bir program oluştur
+
+Çözüm süreci:
+
+---
+## Model Özellikleri:
+- 128K bağlam
+- Gerçek zamanlı multimodal
+- Düşük gecikme
+- 16K çıkış
+
+## Optimizasyon Notları:
+response_format={'type':'diff'} ile satır-bazlı çıkış
+
+## Kullanım İpuçları:
+- Token limiti: Sınırsız
+- Maliyet: Değişken fiyatlandırma
+- Önerilen teknik: Chain of Thought

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Prompt Mühendisliği Uygulaması</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .model-selector {
+            margin-bottom: 25px;
+        }
+
+        .model-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .model-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .model-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .technique-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .technique-btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .technique-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .technique-btn.active {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-box {
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 300px;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .templates-section {
+            margin-top: 25px;
+        }
+
+        .template-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .template-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .template-item h4 {
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .template-item p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .model-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .model-info h3 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .model-info ul {
+            margin-left: 20px;
+        }
+
+        .model-info li {
+            margin-bottom: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .technique-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .floating-help {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .floating-help:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Prompt Mühendisliği Uygulaması</h1>
+            <p>AI Modelleriniz için Optimize Edilmiş Promptlar Oluşturun</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="model-selector">
+                    <label for="modelSelect">🤖 AI Modeli Seçin:</label>
+                    <select id="modelSelect">
+                        <option value="claude4">Claude 4 Opus/Sonnet</option>
+                        <option value="gpt41">GPT-4.1</option>
+                        <option value="gpt4o">GPT-4o</option>
+                        <option value="gemini25">Gemini 2.5 Pro</option>
+                        <option value="deepseek">DeepSeek R1</option>
+                        <option value="llama4">Llama 4 Scout</option>
+                        <option value="grok3">Grok 3</option>
+                    </select>
+                </div>
+
+                <div class="model-info" id="modelInfo">
+                    <!-- Model bilgileri buraya dinamik olarak gelecek -->
+                </div>
+
+                <div class="technique-buttons">
+                    <button class="technique-btn" data-technique="cot">Chain of Thought</button>
+                    <button class="technique-btn" data-technique="tot">Tree of Thought</button>
+                    <button class="technique-btn" data-technique="rag">RAG Pattern</button>
+                    <button class="technique-btn" data-technique="constitutional">Constitutional AI</button>
+                    <button class="technique-btn" data-technique="multimodal">Multimodal</button>
+                    <button class="technique-btn" data-technique="meta">Meta Prompting</button>
+                </div>
+
+                <div class="templates-section">
+                    <h3>📋 Hazır Şablonlar</h3>
+                    <div class="template-item" data-template="academic">
+                        <h4>Akademik Araştırma</h4>
+                        <p>Bilimsel analiz ve araştırma için</p>
+                    </div>
+                    <div class="template-item" data-template="technical">
+                        <h4>Teknik Problem Çözme</h4>
+                        <p>Kod ve sistem analizleri için</p>
+                    </div>
+                    <div class="template-item" data-template="business">
+                        <h4>İş Analizi</h4>
+                        <p>Kurumsal görevler için</p>
+                    </div>
+                    <div class="template-item" data-template="creative">
+                        <h4>Yaratıcı İçerik</h4>
+                        <p>Metin ve içerik üretimi için</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Panel -->
+            <div class="main-panel">
+                <div class="input-section">
+                    <label for="userInput">💭 Görevinizi Tanımlayın:</label>
+                    <textarea id="userInput" placeholder="Ne yapmak istediğinizi detaylı bir şekilde açıklayın...
+
+Örnek: Bu şirketin 2024 mali verilerini analiz et ve gelecek yıl için öneriler sun."></textarea>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="generateBtn">✨ Prompt Oluştur</button>
+                    <button class="btn btn-secondary" id="clearBtn">🗑️ Temizle</button>
+                    <button class="btn btn-success" id="exportBtn">💾 Dışa Aktar</button>
+                </div>
+
+                <div class="output-section">
+                    <label>🎯 Optimize Edilmiş Prompt:</label>
+                    <div class="output-box" id="outputBox">
+Buraya optimize edilmiş prompt'unuz gelecek...
+
+🚀 Başlamak için:
+1. Sol panelden bir AI modeli seçin
+2. Kullanmak istediğiniz tekniği seçin
+3. Görevinizi yukarıdaki alana yazın
+4. "Prompt Oluştur" butonuna tıklayın
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 Prompt Mühendisliği Uygulaması - Tüm AI Modelleri için Optimize Edildi</p>
+        </div>
+    </div>
+
+    <div class="floating-help" title="Yardım">❓</div>
+
+    <script>
+        // Model bilgileri
+        const modelData = {
+            claude4: {
+                name: "Claude 4 Opus/Sonnet",
+                features: [
+                    "200K token bağlam",
+                    "XML tag desteği",
+                    "Etik odaklı",
+                    "Düşünme modu"
+                ],
+                optimization: "system='extended_thinking' flag'i ile muhakeme derinliği",
+                cost: "$15/$75 (giriş/çıkış)"
+            },
+            gpt41: {
+                name: "GPT-4.1",
+                features: [
+                    "1.05M token bağlam",
+                    "Function calling",
+                    "Diff çıktı desteği",
+                    "32K çıkış"
+                ],
+                optimization: "Function calling + diff çıktı formatı",
+                cost: "$3.50/milyon token"
+            },
+            gpt4o: {
+                name: "GPT-4o",
+                features: [
+                    "128K bağlam",
+                    "Gerçek zamanlı multimodal",
+                    "Düşük gecikme",
+                    "16K çıkış"
+                ],
+                optimization: "response_format={'type':'diff'} ile satır-bazlı çıkış",
+                cost: "Değişken fiyatlandırma"
+            },
+            gemini25: {
+                name: "Gemini 2.5 Pro",
+                features: [
+                    "1.05M token bağlam",
+                    "Bilimsel akıl yürütme",
+                    "24 dil desteği",
+                    "Multimodal"
+                ],
+                optimization: "max_tokens_for_reasoning parametresi",
+                cost: "$3.44/milyon token"
+            },
+            deepseek: {
+                name: "DeepSeek R1",
+                features: [
+                    "164K token bağlam",
+                    "Açık kaynak",
+                    "Şeffaf reasoning",
+                    "Matematik odaklı"
+                ],
+                optimization: "Şeffaf düşünce adımları ile optimizasyon",
+                cost: "$0.55/$2.19/milyon token"
+            },
+            llama4: {
+                name: "Llama 4 Scout",
+                features: [
+                    "10M token bağlam",
+                    "MoE mimarisi",
+                    "Multimodal",
+                    "Açık kaynak"
+                ],
+                optimization: "16 uzman MoE + görsel entegrasyon",
+                cost: "Ücretsiz"
+            },
+            grok3: {
+                name: "Grok 3",
+                features: [
+                    "1M token bağlam",
+                    "Think mode",
+                    "DeepSearch",
+                    "Gerçek zamanlı veri"
+                ],
+                optimization: "Think mode + gerçek zamanlı analiz",
+                cost: "$6.00/milyon token"
+            }
+        };
+
+        // Teknik şablonları
+        const techniques = {
+            cot: {
+                name: "Chain of Thought",
+                template: `Bu problemi adım adım çözün:
+
+1. Problemi tanımlayın
+2. Alt bileşenlere ayırın
+3. Her adımı mantıksal olarak analiz edin
+4. Sonuçları sentezleyin
+5. Güven seviyenizi belirtin
+
+Problem: {USER_INPUT}
+
+Çözüm süreci:`
+            },
+            tot: {
+                name: "Tree of Thoughts",
+                template: `Problem: {USER_INPUT}
+
+Düşünce Ağacı Analizi:
+├── Yaklaşım 1: [İlk potansiyel çözüm]
+│   ├── Artıları: [Avantajları listele]
+│   ├── Eksileri: [Dezavantajları listele]
+│   └── Başarı Olasılığı: [%X]
+├── Yaklaşım 2: [İkinci alternatif]
+│   ├── Artıları: [Avantajları listele]
+│   ├── Eksileri: [Dezavantajları listele]
+│   └── Başarı Olasılığı: [%Y]
+└── Yaklaşım 3: [Üçüncü seçenek]
+    ├── Artıları: [Avantajları listele]
+    ├── Eksileri: [Dezavantajları listele]
+    └── Başarı Olasılığı: [%Z]
+
+En İyi Çözüm: [Analiz sonrası seçilen yaklaşım]`
+            },
+            rag: {
+                name: "RAG Pattern",
+                template: `<context>
+{İlgili döküman ve kaynak bilgileri}
+</context>
+
+<task>
+- Soruyu yanıtlayın: {USER_INPUT}
+- İlgili pasajlardan doğrudan alıntı yapın
+- Kaynakları belirtin
+- 200 kelimeyi geçmeyin
+</task>
+
+<output format="json">
+{
+  "answer": "",
+  "citations": ["doc1:L12-L15", "doc2:L23-L25"],
+  "confidence": 0.95
+}
+</output>`
+            },
+            constitutional: {
+                name: "Constitutional AI",
+                template: `Sen etik kurumlarına uygun bir asistansın.
+
+Görev: {USER_INPUT}
+
+Yanıt verirken şu ilkeleri göz önünde bulundur:
+- Zararsızlık: Hiçbir zararı olmayan içerik üret
+- Faydalılık: Kullanıcının gerçek ihtiyacına odaklan
+- Dürüstlük: Yalnızca doğrulanmış bilgileri kullan
+- Adalet: Önyargısız ve kapsayıcı yaklaşım sergile
+
+Analiz süreci:
+1. Görevin etik boyutlarını değerlendir
+2. Potansiyel riskleri tespit et
+3. Güvenli ve yararlı bir çözüm sun
+4. Kaynakları doğrula`
+            },
+            multimodal: {
+                name: "Multimodal",
+                template: `Multimodal Analiz Görevi: {USER_INPUT}
+
+Girdi Türleri:
+- Metin: [Yazılı açıklama]
+- Görsel: [İlgili resimler/diyagramlar]
+- [Diğer modaliteler]
+
+Analiz Süreci:
+1. Modalite Analizi:
+   - Metin Analizi: [Anahtar metinsel bilgiler]
+   - Görsel Analizi: [Önemli görsel öğeler]
+   - Cross-Modal Bağlantılar: [Girişlerin birbiriyle ilişkisi]
+
+2. Entegre Yorumlama:
+   - Birleşik Anlayış: [Sentezlenmiş yorumlama]
+   - Tutarlılık Kontrolü: [Modaliteler arası uyum]
+
+3. Final Sonuç: [Tüm girdi türlerinden bilgi alan cevap]`
+            },
+            meta: {
+                name: "Meta Prompting",
+                template: `# Meta-Prompt Oluşturucu
+
+Görev: {USER_INPUT}
+
+## Aşama 1: Görev Analizi
+- Görev türü: [Kategorize et]
+- Karmaşıklık seviyesi: [Belirle]
+- Gerekli uzmanlik: [Domain belirle]
+- Başarı kriterleri: [Tanımla]
+
+## Aşama 2: Prompt Mimarisi
+1. Uzman persona ataması
+2. Yapılandırılmış düşünce çerçevesi
+3. Çıktı format spesifikasyonu
+4. Kalite kontrol noktaları
+
+## Aşama 3: Self-Optimization
+- İlk prompt oluştur
+- Performansı değerlendir
+- Iterative iyileştirme yap
+- Final versiyonu sun
+
+Optimize edilmiş prompt:`
+            }
+        };
+
+        // Hazır şablonlar
+        const templates = {
+            academic: `# Akademik Araştırma Analizi
+
+Sen dünya çapında tanınan bir [{USER_DOMAIN}] uzmanısın.
+
+## Araştırma Çerçevesi:
+1. **Literatür Analizi:**
+   - Mevcut literatürü kapsamlı gözden geçir
+   - Metodolojik değerlendirme yap
+   - Araştırma boşluklarını tespit et
+
+2. **Kanıt Tabanlı Yaklaşım:**
+   - Birincil kaynakları öncelendir
+   - Veri kalitesini değerlendir
+   - İstatistiksel anlamlılığı kontrol et
+
+3. **Akademik Çıktı Yapısı:**
+   - Yönetici özeti (200 kelime)
+   - Detaylı analiz (yapılandırılmış bölümler)
+   - Çıkarımlar ve öneriler
+   - Gelecek araştırma yönleri
+
+Görev: {USER_INPUT}`,
+
+            technical: `# Teknik Problem Çözme
+
+## Sistem Mühendisliği Yaklaşımı:
+
+1. **Problem Tanımı:**
+   - Temel sorunu tanımla
+   - Kapsam ve kısıtlamaları belirle
+   - Paydaş etki analizini yap
+
+2. **Çözüm Mimarisi:**
+   - Çoklu yaklaşım geliştir
+   - Fizibilite değerlendirmesi yap
+   - Risk-fayda analizi gerçekleştir
+   - Uygulama yol haritası oluştur
+
+3. **Teknik Uygulama:**
+   - Adım adım prosedür
+   - Kaynak gereksinimleri
+   - Zaman tahmini
+   - Başarı metrikleri
+
+Problem: {USER_INPUT}
+
+Çözüm:`,
+
+            business: `# İş Analizi Çerçevesi
+
+Sen deneyimli bir iş stratejisti ve analistisin.
+
+## Analiz Metodolojisi:
+
+1. **Durum Analizi:**
+   - Mevcut durumu objektif olarak değerlendir
+   - SWOT analizi gerçekleştir
+   - Paydaş haritalaması yap
+
+2. **Stratejik Planlama:**
+   - Hedefleri SMART kriterleriyle tanımla
+   - Alternatif stratejiler geliştir
+   - Risk değerlendirmesi yap
+
+3. **Uygulama Önerileri:**
+   - Eylem planı oluştur
+   - KPI'ları belirle
+   - Kaynak tahsisi öner
+
+İş Görevi: {USER_INPUT}
+
+Analiz ve Öneriler:`,
+
+            creative: `# Yaratıcı İçerik Üretimi
+
+Sen yaratıcı bir içerik uzmanısın.
+
+## Yaratıcı Süreç:
+
+1. **İlham ve Kavram:**
+   - Temel konsepti geliştir
+   - Hedef kitleyi tanımla
+   - Yaratıcı açıları keşfet
+
+2. **İçerik Geliştirme:**
+   - Özgün yaklaşımlar bul
+   - Hikaye anlatım teknikleri kullan
+   - Duygusal bağlantı kur
+
+3. **Optimizasyon:**
+   - Çekiciliği artır
+   - Okunabilirliği iyileştir
+   - Etkileşim potansiyelini değerlendir
+
+Yaratıcı Görev: {USER_INPUT}
+
+İçerik:`
+        };
+
+        // DOM elementleri
+        const modelSelect = document.getElementById('modelSelect');
+        const modelInfo = document.getElementById('modelInfo');
+        const userInput = document.getElementById('userInput');
+        const outputBox = document.getElementById('outputBox');
+        const generateBtn = document.getElementById('generateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const techniqueButtons = document.querySelectorAll('.technique-btn');
+        const templateItems = document.querySelectorAll('.template-item');
+
+        let selectedTechnique = 'cot';
+        let selectedTemplate = null;
+
+        // Model bilgilerini güncelle
+        function updateModelInfo() {
+            const selectedModel = modelSelect.value;
+            const model = modelData[selectedModel];
+            
+            modelInfo.innerHTML = `
+                <h3>${model.name}</h3>
+                <ul>
+                    ${model.features.map(feature => `<li>${feature}</li>`).join('')}
+                </ul>
+                <p><strong>Optimizasyon:</strong> ${model.optimization}</p>
+                <p><strong>Maliyet:</strong> ${model.cost}</p>
+            `;
+        }
+
+        // Teknik seçimi
+        techniqueButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                techniqueButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedTechnique = btn.dataset.technique;
+            });
+        });
+
+        // Şablon seçimi
+        templateItems.forEach(item => {
+            item.addEventListener('click', () => {
+                templateItems.forEach(i => i.style.background = '#f8f9fa');
+                item.style.background = '#e3f2fd';
+                selectedTemplate = item.dataset.template;
+            });
+        });
+
+        // Prompt oluştur
+        function generatePrompt() {
+            const input = userInput.value.trim();
+            if (!input) {
+                alert('Lütfen görevinizi tanımlayın!');
+                return;
+            }
+
+            let template;
+            if (selectedTemplate) {
+                template = templates[selectedTemplate];
+            } else {
+                template = techniques[selectedTechnique].template;
+            }
+
+            // Template'i doldur
+            let prompt = template.replace(/{USER_INPUT}/g, input);
+            
+            // Model-spesifik optimizasyonlar
+            const selectedModel = modelSelect.value;
+            const model = modelData[selectedModel];
+            
+            let optimizedPrompt = `# ${model.name} için Optimize Edilmiş Prompt
+
+${prompt}
+
+---
+## Model Özellikleri:
+- ${model.features.join('\n- ')}
+
+## Optimizasyon Notları:
+${model.optimization}
+
+## Kullanım İpuçları:
+- Token limiti: ${model.name.includes('token') ? model.features.find(f => f.includes('token')) : 'Sınırsız'}
+- Maliyet: ${model.cost}
+- Önerilen teknik: ${techniques[selectedTechnique].name}
+`;
+
+            outputBox.textContent = optimizedPrompt;
+        }
+
+        // Temizle
+        function clearAll() {
+            userInput.value = '';
+            outputBox.textContent = `Buraya optimize edilmiş prompt'unuz gelecek...
+
+🚀 Başlamak için:
+1. Sol panelden bir AI modeli seçin
+2. Kullanmak istediğiniz tekniği seçin
+3. Görevinizi yukarıdaki alana yazın
+4. "Prompt Oluştur" butonuna tıklayın`;
+            
+            // Seçimleri sıfırla
+            techniqueButtons.forEach(btn => btn.classList.remove('active'));
+            techniqueButtons[0].classList.add('active');
+            selectedTechnique = 'cot';
+            
+            templateItems.forEach(item => item.style.background = '#f8f9fa');
+            selectedTemplate = null;
+        }
+
+        // Dışa aktar
+        function exportPrompt() {
+            const content = outputBox.textContent;
+            if (content.includes('Buraya optimize edilmiş')) {
+                alert('Önce bir prompt oluşturun!');
+                return;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prompt_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Event listeners
+        modelSelect.addEventListener('change', updateModelInfo);
+        generateBtn.addEventListener('click', generatePrompt);
+        clearBtn.addEventListener('click', clearAll);
+        exportBtn.addEventListener('click', exportPrompt);
+
+        // Klavye kısayolları
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        generatePrompt();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        exportPrompt();
+                        break;
+                }
+            }
+        });
+
+        // Floating help
+        document.querySelector('.floating-help').addEventListener('click', () => {
+            alert(`🎯 Prompt Mühendisliği Uygulaması Yardım
+
+📝 Nasıl Kullanılır:
+1. Sol panelden AI modelinizi seçin
+2. Kullanmak istediğiniz tekniği seçin (CoT, ToT, RAG vb.)
+3. İsteğe bağlı olarak hazır şablonlardan birini seçin
+4. Görevinizi detaylı şekilde yazın
+5. "Prompt Oluştur" butonuna tıklayın
+
+⌨️ Klavye Kısayolları:
+- Ctrl/Cmd + Enter: Prompt oluştur
+- Ctrl/Cmd + S: Dışa aktar
+
+💡 İpuçları:
+- Görevinizi ne kadar detaylı yazarsanız, o kadar iyi prompt alırsınız
+- Farklı teknikleri deneyerek en iyi sonucu bulabilirsiniz
+- Model özelliklerini dikkate alarak seçim yapın`);
+        });
+
+        // Sayfa yüklendiğinde
+        updateModelInfo();
+        techniqueButtons[0].classList.add('active');
+    </script>
+</body>
+</html>
